@@ -78,6 +78,13 @@
 	    };
 	    socket.send(JSON.stringify(payload));
 	})
+	window.addEventListener('touchmove', (e) => {
+	    const payload = {
+	        x: e.touches[0].clientX/window.innerWidth,
+	        y: e.touches[0].clientY/window.innerHeight,
+	    };
+	    socket.send(JSON.stringify(payload));
+	})
 
 	initSocket();
 
