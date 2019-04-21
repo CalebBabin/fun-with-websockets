@@ -19,6 +19,18 @@ const tickInterval = setInterval(() => {
     }
 }, tickSpacing);
 
+const heartbeatInterval = setInterval(function ping() {
+    wss.clients.forEach(function each(ws) {
+        if (ws.isAlive === false) {
+            console.log(`disconnecting ${ws.clientId}`)
+            buffer.addEvent(ws.clientId, 'disconnect');
+            return ws.terminate();
+        }
+
+        ws.isAlive = false;
+        ws.ping();
+    });
+}, 10000);
 
 wss.on('connection', function connection(ws) {
     ws.on('message', function incoming(message) {
@@ -34,17 +46,9 @@ wss.on('connection', function connection(ws) {
         id: ws.clientId,
         tickSpacing: tickSpacing,
     }))
-});
-
-const heartbeatInterval = setInterval(function ping() {
-    wss.clients.forEach(function each(ws) {
-        if (ws.isAlive === false) {
-            console.log(`disconnecting ${ws.clientId}`)
-            buffer.addEvent(ws.clientId, 'disconnect');
-            return ws.terminate();
-        }
-
-        ws.isAlive = false;
-        ws.ping();
+    
+    ws.on('disconnect', () => {
+        console.log(`disconnecting ${ws.clientId} gracefully`)
+        buffer.addEvent(ws.clientId, 'disconnect');
     });
-}, 10000);
+});
