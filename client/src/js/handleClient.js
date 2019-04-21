@@ -29,9 +29,8 @@ module.exports = (client) => {
             index = client.events.length;
         } else {
             setTimeout(()=>{
-                activeClients[client.id].element.style.left = e.x*100+'%';
-                activeClients[client.id].element.style.top = e.y*100+'%';
-    
+                activeClients[client.id].element.style.left = Math.max(0, Math.min(100, e.x*100))+'%';
+                activeClients[client.id].element.style.top = Math.max(0, Math.min(100, e.y*100))+'%';
             }, interval*index);
         }
 

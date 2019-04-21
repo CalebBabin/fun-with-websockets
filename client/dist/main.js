@@ -44,30 +44,32 @@
 /* 0 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	const socket = new WebSocket('wss://ws.opl.io');
+	let socket = null;
 	let myId = null;
 
-
 	const handleClient = __webpack_require__(1);
+	const initSocket = () => {
+	    socket = new WebSocket('wss://ws.opl.io');
 
-
-	socket.onmessage = (message) => {
-	    const data = JSON.parse(message.data);
-	    if (data.id) {
-	        myId = data.id;
-	        window.tickSpacing = data.tickSpacing;
-	    }
-
-	    if (data.clients) {
-	        for (let index = 0; index < data.clients.length; index++) {
-	            const client = data.clients[index];
-	            //if (client.id !== myId) {
-	                handleClient(client);
-	            //}
+	    socket.onmessage = (message) => {
+	        const data = JSON.parse(message.data);
+	        if (data.id) {
+	            myId = data.id;
+	            window.tickSpacing = data.tickSpacing;
+	        }
+	    
+	        if (data.clients) {
+	            for (let index = 0; index < data.clients.length; index++) {
+	                const client = data.clients[index];
+	                //if (client.id !== myId) {
+	                    handleClient(client);
+	                //}
+	            }
 	        }
 	    }
 
 	}
+
 
 	window.addEventListener('mousemove', (e) => {
 	    const payload = {
@@ -76,6 +78,14 @@
 	    };
 	    socket.send(JSON.stringify(payload));
 	})
+
+	initSocket();
+
+	setInterval(()=>{
+	    if (socket.readyState > 1) {
+	        initSocket();
+	    }
+	}, 5000);
 
 /***/ }),
 /* 1 */
@@ -112,9 +122,8 @@
 	            index = client.events.length;
 	        } else {
 	            setTimeout(()=>{
-	                activeClients[client.id].element.style.left = e.x*100+'%';
-	                activeClients[client.id].element.style.top = e.y*100+'%';
-	    
+	                activeClients[client.id].element.style.left = Math.max(0, Math.min(100, e.x*100))+'%';
+	                activeClients[client.id].element.style.top = Math.max(0, Math.min(100, e.y*100))+'%';
 	            }, interval*index);
 	        }
 
