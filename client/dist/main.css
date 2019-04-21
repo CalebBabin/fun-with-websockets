@@ -3,7 +3,8 @@ html, body, canvas {
   width: 100%;
   height: 100%;
   position: relative;
-  background: #333; }
+  background: #333;
+  overflow: hidden; }
 
 .client {
   position: absolute;
