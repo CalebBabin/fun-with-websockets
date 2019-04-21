@@ -33,11 +33,21 @@ window.addEventListener('mousemove', (e) => {
     socket.send(JSON.stringify(payload));
 })
 window.addEventListener('touchmove', (e) => {
+    e.preventDefault();
     const payload = {
         x: e.touches[0].clientX/window.innerWidth,
         y: e.touches[0].clientY/window.innerHeight,
     };
     socket.send(JSON.stringify(payload));
+    return false;
+})
+window.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    return false;
+})
+window.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    return false;
 })
 
 initSocket();
