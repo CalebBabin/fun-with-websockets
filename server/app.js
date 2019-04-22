@@ -7,7 +7,7 @@ const parser = require(__dirname+'/parser.js');
 const ResponseBuffer = require(__dirname+'/responseBuffer.js');
 const buffer = new ResponseBuffer();
 
-const tickSpacing = 1000/5; // the max rate we'll send data out, x times per second.
+const tickSpacing = 1000/60; // the max rate we'll send data out, x times per second.
 
 const tickInterval = setInterval(() => {
     if (buffer.isReady) {
