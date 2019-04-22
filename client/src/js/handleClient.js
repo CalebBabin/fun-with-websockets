@@ -10,10 +10,8 @@ class Handler {
 
     clear () {
         this.canvas.clear();
-        for (let index = 0; index < this.clients.length; index++) {
-            const client = this.clients[index];
-            client.element.parentElement.removeChild(client.element);
-            delete client.element;
+        for (const id in this.clients) {
+            this.clients[id].element.parentElement.removeChild(this.clients[id].element);
         }
         this.clients = {};
     }
