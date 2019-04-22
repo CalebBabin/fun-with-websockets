@@ -1,12 +1,20 @@
 module.exports = (socket, message, responseBuffer) => {
     try {
         const data = JSON.parse(message);
-        const output = {
-            x: Math.max(0, Math.min(1, Number(data.x))),
-            y: Math.max(0, Math.min(1, Number(data.y))),
+        const output = {};
+
+        if (data.x !== undefined && data.y !== undefined) {
+            output.x = Math.max(0, Math.min(1, Number(data.x)))
+            output.y = Math.max(0, Math.min(1, Number(data.y)))
         }
-        responseBuffer.addEvent(socket.clientId, data);
+        
+        if (data.mousedown !== undefined) output.mousedown = true;
+        if (data.mouseup !== undefined) output.mouseup = true;
+        
+        responseBuffer.addEvent(socket.clientId, output);
+
     } catch(e) {
-        console.error( new Error(e));
+        // if the client throws us some incorrectly encoded json don't throw
+        console.error( new Error(e) );
     }
 };
