@@ -130,7 +130,7 @@
 	            client.element.parentElement.removeChild(client.element);
 	            delete client.element;
 	        }
-	        this.clients = [];
+	        this.clients = {};
 	    }
 
 	    colorHash (hash) {
