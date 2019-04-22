@@ -15,6 +15,10 @@ class Canvas {
         this.resize();
     }
 
+    clear () {
+        this.context.clearRect(0,0,this.canvas.width, this.canvas.height);
+    }
+
     resize () {
         this.offcanvas.width = this.canvas.width;
         this.offcanvas.height = this.canvas.height;

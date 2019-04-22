@@ -44,144 +44,166 @@
 /* 0 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	let socket = null;
-	let myId = null;
+	window.addEventListener('DOMContentLoaded', () => {
 
-	const handleClient = __webpack_require__(1);
-	const initSocket = () => {
-	    socket = new WebSocket('wss://ws.opl.io');
 
-	    socket.onmessage = (message) => {
-	        const data = JSON.parse(message.data);
-	        if (data.id) {
-	            myId = data.id;
-	            window.tickSpacing = data.tickSpacing;
-	        }
-	    
-	        if (data.clients) {
-	            for (let index = 0; index < data.clients.length; index++) {
-	                const client = data.clients[index];
-	                //if (client.id !== myId) {
-	                    handleClient(client);
-	                //}
+	    let socket = null;
+	    let myId = null;
+
+	    const ClientHandler = __webpack_require__(1);
+	    const handler = new ClientHandler(document.body);
+	    const initSocket = () => {
+	        socket = new WebSocket('wss://ws.opl.io');
+
+	        socket.onmessage = (message) => {
+	            const data = JSON.parse(message.data);
+	            if (data.id) {
+	                myId = data.id;
+	                window.tickSpacing = data.tickSpacing;
+	            }
+	        
+	            if (data.clients) {
+	                for (let index = 0; index < data.clients.length; index++) {
+	                    const client = data.clients[index];
+	                    //if (client.id !== myId) {
+	                        handler.ingest(client);
+	                    //}
+	                }
 	            }
 	        }
+
 	    }
 
-	}
 
+	    window.addEventListener('mousemove', (e) => {
+	        const payload = {
+	            x: e.clientX/window.innerWidth,
+	            y: e.clientY/window.innerHeight,
+	        };
+	        socket.send(JSON.stringify(payload));
+	    })
+	    window.addEventListener('touchmove', (e) => {
+	        e.preventDefault();
+	        const payload = {
+	            x: e.touches[0].clientX/window.innerWidth,
+	            y: e.touches[0].clientY/window.innerHeight,
+	        };
+	        socket.send(JSON.stringify(payload));
+	        return false;
+	    })
+	    window.addEventListener('touchstart', (e) => {
+	        e.preventDefault();
+	        return false;
+	    })
+	    window.addEventListener('touchend', (e) => {
+	        e.preventDefault();
+	        return false;
+	    })
 
-	window.addEventListener('mousemove', (e) => {
-	    const payload = {
-	        x: e.clientX/window.innerWidth,
-	        y: e.clientY/window.innerHeight,
-	    };
-	    socket.send(JSON.stringify(payload));
-	})
-	window.addEventListener('touchmove', (e) => {
-	    e.preventDefault();
-	    const payload = {
-	        x: e.touches[0].clientX/window.innerWidth,
-	        y: e.touches[0].clientY/window.innerHeight,
-	    };
-	    socket.send(JSON.stringify(payload));
-	    return false;
-	})
-	window.addEventListener('touchstart', (e) => {
-	    e.preventDefault();
-	    return false;
-	})
-	window.addEventListener('touchend', (e) => {
-	    e.preventDefault();
-	    return false;
-	})
+	    initSocket();
 
-	initSocket();
+	    setInterval(()=>{
+	        if (socket.readyState > 1) {
+	            handler.clear();
+	            initSocket();
+	        }
+	    }, 5000);
 
-	setInterval(()=>{
-	    if (socket.readyState > 1) {
-	        initSocket();
-	    }
-	}, 5000);
+	});
 
 /***/ }),
 /* 1 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	const Canvas = __webpack_require__(2);
-	const canvas = new Canvas();
-	const ctx = canvas.context;
+	class Handler {
+	    constructor (container) {
+	        this.canvas = new Canvas();
+	        this.ctx = this.canvas.context;
+	        this.container = container;
 
-	const activeClients = {};
-
-	const colorHash = (hash) => {
-	    let val = 1;
-	    for (let index = 0; index < hash.length; index++) {
-	        val += hash.charCodeAt(index);
+	        this.clients = {};
 	    }
-	    for (let index = hash.length-1; index > 0; index--) {
-	        val += hash.charCodeAt(index) * hash.charCodeAt(index-1);
-	    }
-	    while(val > 360) val -= 360;
-	    return `hsl(${val}, 100%, 50%)`;
-	}
 
-	const initClient = (id) => {
-	    activeClients[id] = {
-	        pos: {
-	            x: 0.5,
-	            y: 0.5,
-	        },
-	        color: colorHash(id),
-	        element: document.createElement('div'),
-	    };
-
-	    activeClients[id].element.classList.add('client');
-
-	    document.body.appendChild(activeClients[id].element);
-	}
-
-	module.exports = (client) => {
-	    if (!activeClients[client.id]) {
-	        initClient(client.id);
-	        activeClients[client.id].pos.x = client.events[0].x;
-	        activeClients[client.id].pos.y = client.events[0].y;
-	    }
-	    
-	    const interval = window.tickSpacing/client.events.length;
-	    ctx.beginPath();
-	    ctx.strokeStyle = activeClients[client.id].color;
-	    ctx.moveTo(
-	        activeClients[client.id].pos.x*window.innerWidth,
-	        activeClients[client.id].pos.y*window.innerHeight
-	        )
-
-	    for (let index = 0; index < client.events.length; index++) {
-	        const e = client.events[index];
-	        if (e === 'disconnect') {
-	            activeClients[client.id].element.parentElement.removeChild(activeClients[client.id].element);
-	            delete activeClients[client.id];
-	            index = client.events.length;
-	        } else {
-	            const myX = Math.max(0, Math.min(1, e.x));
-	            const myY = Math.max(0, Math.min(1, e.y));
-	            setTimeout(()=>{
-	                activeClients[client.id].element.style.left = myX*100+'%';
-	                activeClients[client.id].element.style.top = myY*100+'%';
-	            }, interval*index);
-
-	            activeClients[client.id].pos.x = myX;
-	            activeClients[client.id].pos.y = myY;
-
-	            ctx.lineTo(
-	                myX*window.innerWidth,
-	                myY*window.innerHeight);
+	    clear () {
+	        this.canvas.clear();
+	        for (let index = 0; index < clients.length; index++) {
+	            const client = clients[index];
+	            client.element.parentElement.removeChild(client.element);
+	            delete client.element;
 	        }
-
+	        this.clients = [];
 	    }
-	    ctx.stroke();
 
+	    colorHash (hash) {
+	        let val = 1;
+	        for (let index = 0; index < hash.length; index++) {
+	            val += hash.charCodeAt(index);
+	        }
+	        for (let index = hash.length-1; index > 0; index--) {
+	            val += hash.charCodeAt(index) * hash.charCodeAt(index-1);
+	        }
+	        while(val > 360) val -= 360;
+	        return `hsl(${val}, 100%, 50%)`;
+	    }
+
+	    initClient (id) {
+	        this.clients[id] = {
+	            pos: {
+	                x: 0.5,
+	                y: 0.5,
+	            },
+	            color: this.colorHash(id),
+	            element: document.createElement('div'),
+	        };
+
+	        this.clients[id].element.classList.add('client');
+	        this.container.appendChild(this.clients[id].element);
+	    }
+
+	    ingest (client) {
+	        if (!this.clients[client.id]) {
+	            this.initClient(client.id);
+	            this.clients[client.id].pos.x = client.events[0].x;
+	            this.clients[client.id].pos.y = client.events[0].y;
+	        }
+	        
+	        const interval = window.tickSpacing/client.events.length;
+	        this.ctx.beginPath();
+	        this.ctx.strokeStyle = this.clients[client.id].color;
+	        this.ctx.moveTo(
+	            this.clients[client.id].pos.x*this.canvas.canvas.width,
+	            this.clients[client.id].pos.y*this.canvas.canvas.height
+	            )
+	    
+	        for (let index = 0; index < client.events.length; index++) {
+	            const e = client.events[index];
+	            if (e === 'disconnect') {
+	                this.clients[client.id].element.parentElement.removeChild(this.clients[client.id].element);
+	                delete this.clients[client.id];
+	                index = client.events.length;
+	            } else {
+	                const myX = Math.max(0, Math.min(1, e.x));
+	                const myY = Math.max(0, Math.min(1, e.y));
+	                setTimeout(()=>{
+	                    this.clients[client.id].element.style.left = myX*100+'%';
+	                    this.clients[client.id].element.style.top = myY*100+'%';
+	                }, interval*index);
+	    
+	                this.clients[client.id].pos.x = myX;
+	                this.clients[client.id].pos.y = myY;
+	    
+	                this.ctx.lineTo(
+	                    myX*this.canvas.canvas.width,
+	                    myY*this.canvas.canvas.height);
+	            }
+	    
+	        }
+	        this.ctx.stroke();
+	    }
 	}
+
+	module.exports = Handler;
 
 /***/ }),
 /* 2 */
@@ -202,6 +224,10 @@
 	    init () {
 	        document.body.appendChild(this.canvas);
 	        this.resize();
+	    }
+
+	    clear () {
+	        this.context.clearRect(0,0,this.canvas.width, this.canvas.height);
 	    }
 
 	    resize () {
