@@ -46,9 +46,9 @@ const tickInterval = setInterval(() => {
     allows us to drop sockets that are inactive and broadcast
     this information to other clients.
 */
-const heartbeatInterval = setInterval(function ping() {
-    wss.clients.forEach(function each(ws) {
-        if (ws.isAlive === false) {
+const heartbeatInterval = setInterval(() => {
+    wss.clients.forEach((ws) => {
+        if (!ws.isAlive) {
             console.log(`disconnecting ${ws.clientId}`)
             buffer.addEvent(ws.clientId, 'disconnect');
             return ws.terminate();
@@ -80,9 +80,10 @@ wss.on('connection', function connection(ws) {
     ws.on('pong', () => {
         ws.isAlive = true;
     });
+    ws.isAlive = true;
 
-    
-    ws.on('disconnect', () => {
+    //listen for disconnected sockets and broadcast this information
+    ws.on('close', () => {
         console.log(`disconnecting ${ws.clientId} gracefully`)
         buffer.addEvent(ws.clientId, 'disconnect');
     });
