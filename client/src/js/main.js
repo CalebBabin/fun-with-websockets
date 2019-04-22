@@ -1,6 +1,4 @@
 window.addEventListener('DOMContentLoaded', () => {
-
-
     let socket = null;
     let myId = null;
 

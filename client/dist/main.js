@@ -45,8 +45,6 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 	window.addEventListener('DOMContentLoaded', () => {
-
-
 	    let socket = null;
 	    let myId = null;
 
