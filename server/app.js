@@ -4,11 +4,10 @@ const config = require(__dirname+'/config.js');
 /////////////////////////////////////////////
 ///////////////// Utilities /////////////////
 /////////////////////////////////////////////
-const ResponseBuffer = require(__dirname+'/responseBuffer.js');
+const ResponseBuffer = require(__dirname+'/utils/responseBuffer.js');
 const buffer = new ResponseBuffer();
-
-const getUniqueId = require(__dirname+'/uniqueId.js');
-const parser = require(__dirname+'/parser.js');
+const getUniqueId = require(__dirname+'/utils/uniqueId.js');
+const parser = require(__dirname+'/utils/parser.js');
 
 
 /////////////////////////////////////////////
