@@ -1,5 +1,5 @@
 const getId = (server) => {
-    const newId = Math.random()*1000000000000000000;
+    const newId = Math.floor(Math.random()*65536);
 
     let match = false;
 
