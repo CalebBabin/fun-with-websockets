@@ -75,7 +75,6 @@ wss.on('connection', function connection(ws) {
 
     //pass incoming messages into the parser with the websocket and buffer instance.
     ws.on('message', function incoming(message) {
-        console.log(typeof message, message);
         parser(ws, message, buffer);
     });
 

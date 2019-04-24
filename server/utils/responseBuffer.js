@@ -25,7 +25,6 @@ class ResponseBuffer {
         */ 
         const buffer = new ArrayBuffer(2 + 5*events.length);
         const dv = new DataView(buffer, 0);
-        console.log('id', client);
         dv.setUint16(0, client);
         for (let index = 0; index < events.length; index++) {
             const event = events[index];
@@ -38,7 +37,6 @@ class ResponseBuffer {
                 dv.setUint8(offset + 4, event.config);
             }
         }
-        console.log(buffer, 'hi');
         return buffer;
     }
 
@@ -46,9 +44,7 @@ class ResponseBuffer {
         const response = []
 
         for (const client in this.clients) {
-            console.log('clientID', client)
             if (this.clients.hasOwnProperty(client)) {
-                console.log('clientID2', client)
                 response.push(this.formBinaryResponse(this.clients[client], client));
                 /*
                     {
