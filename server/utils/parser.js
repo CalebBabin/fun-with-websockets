@@ -1,9 +1,4 @@
 const binaryParse = (socket, message, responseBuffer) => {
-
-    console.log(message.readUInt16BE(0),
-        message.readUInt16BE(2),
-        message.readUInt8(4))
-
     const output = {};
 
     output.x = message.readUInt16BE(0);
