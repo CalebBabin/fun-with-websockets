@@ -23,6 +23,8 @@ const CURRENT_STATE = {
     mousedown: false,
 }
 
+const last_position = {x: 0, y: 0};
+
 for (const key in OPTION_MAP) {
     if (OPTION_MAP.hasOwnProperty(key)) {
         OPTION_MAP_ARRAY[OPTION_MAP[key]] = key;
@@ -146,6 +148,8 @@ window.addEventListener('DOMContentLoaded', () => {
         const buffer = new ArrayBuffer(5);
         const dv = new DataView(buffer, 0);
         console.log(x, y);
+        last_position.x = x;
+        last_position.y = y;
         dv.setUint16(0, Math.floor(constrainToOne(x)*65535));
         dv.setUint16(2, Math.floor(constrainToOne(y)*65535));
         dv.setUint8(4, option_to_int(options));
@@ -189,11 +193,22 @@ window.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('touchstart', (e) => {
         e.preventDefault();
         CURRENT_STATE.mousedown = true;
+        send(
+            e.touches[0].clientX/window.innerWidth,
+            e.touches[0].clientY/window.innerHeight,
+            CURRENT_STATE
+        );
         return false;
     })
     window.addEventListener('touchend', (e) => {
         e.preventDefault();
         CURRENT_STATE.mousedown = false;
+        console.log(e);
+        send(
+            last_position.x,
+            last_position.y,
+            CURRENT_STATE
+        );
         return false;
     })
     //////////////////////////////////////////////
