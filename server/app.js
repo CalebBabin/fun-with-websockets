@@ -33,7 +33,9 @@ const tickInterval = setInterval(() => {
         const response = buffer.compose();
 
         wss.clients.forEach(function each(ws) {
-            ws.send(response);
+            for (let index = 0; index < response.length; index++) {
+                ws.send(response[index]);
+            }
         });
     }
 }, config.tickrate);
@@ -65,6 +67,7 @@ wss.on('connection', function connection(ws) {
 
     //assign socket a unique ID and send it to the client
     ws.clientId = getUniqueId(wss);
+    console.log(`${ws.clientId} connected`);
     ws.send(JSON.stringify({
         id: ws.clientId,
         tickSpacing: config.tickrate,
@@ -72,6 +75,7 @@ wss.on('connection', function connection(ws) {
 
     //pass incoming messages into the parser with the websocket and buffer instance.
     ws.on('message', function incoming(message) {
+        console.log(typeof message, message);
         parser(ws, message, buffer);
     });
 
