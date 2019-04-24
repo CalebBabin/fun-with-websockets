@@ -193,7 +193,6 @@
 
 	        const buffer = new ArrayBuffer(5);
 	        const dv = new DataView(buffer, 0);
-	        console.log(x, y);
 	        last_position.x = x;
 	        last_position.y = y;
 	        dv.setUint16(0, Math.floor(constrainToOne(x)*65535));
@@ -249,7 +248,6 @@
 	    window.addEventListener('touchend', (e) => {
 	        e.preventDefault();
 	        CURRENT_STATE.mousedown = false;
-	        console.log(e);
 	        send(
 	            last_position.x,
 	            last_position.y,
