@@ -1,3 +1,7 @@
+html, body, canvas, .client {
+  cursor: default;
+  pointer-events: none; }
+
 html, body, canvas {
   margin: 0;
   width: 100%;
