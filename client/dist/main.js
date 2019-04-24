@@ -337,6 +337,7 @@
 	        const interval = window.TICK_SPACING/client.events.length;
 	        this.ctx.strokeStyle = this.clients[client.id].color;
 	    
+	        this.ctx.beginPath();
 	        let lineStarted = false;
 	        if (this.clients[client.id].mousedown) {
 	            lineStarted = true;
@@ -375,7 +376,6 @@
 	                    /*
 	                        If our line hasn't been started but the mouse is down, start the path
 	                    */
-	                    this.ctx.beginPath();
 	                    this.ctx.moveTo(
 	                        this.clients[client.id].pos.x*this.canvas.canvas.width,
 	                        this.clients[client.id].pos.y*this.canvas.canvas.height
@@ -403,12 +403,12 @@
 	    
 	        }
 
-	        if (lineStarted && !disconnect) {
+	        if (lineStarted) {
 	            /*
 	                If our line hasn't been closed yet, make sure that we pick back up once the next event packet comes in and finish off the stroke while we're at it.
 	            */
 	            this.ctx.stroke();
-	            this.clients[client.id].mousedown = true;
+	            if (!disconnect) this.clients[client.id].mousedown = true;
 	        } else {
 	            /*
 	                Make sure to mark this client as not currently drawing, so that we don't pick the stroke back up on the next event.
