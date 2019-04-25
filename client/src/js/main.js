@@ -1,71 +1,18 @@
 
-const getQueryVariable = (variable) => {
-    var query = window.location.search.substring(1);
-    var vars = query.split("&");
-    for (var i = 0; i < vars.length; i++) {
-        var pair = vars[i].split("=");
-        if (pair[0] == variable) {
-            return pair[1];
-        }
-    }
-    return false;
-}
+const getQueryVariable = require('./utils/query_variable');
 
 // Allow a query variable to be used for testing purposes.
 const SERVER_URL = (getQueryVariable('server')) ? getQueryVariable('server') : 'wss://ws.opl.io';
 
-const OPTION_MAP = {
-    mousedown: 0,
-    disconnect: 7,
-}
-const OPTION_MAP_ARRAY = [];
-const CURRENT_STATE = {
-    mousedown: false,
-}
+const Variables = require('./variables.js');
+Variables.last_position = {x: 0, y: 0};
+Variables.current_state = {};
 
-const last_position = {x: 0, y: 0};
+const option_to_int = require('./utils/options_to_int.js');
+const int_to_option = require('./utils/int_to_option.js');
+const EncoderClass = require('./encoder');
 
-for (const key in OPTION_MAP) {
-    if (OPTION_MAP.hasOwnProperty(key)) {
-        OPTION_MAP_ARRAY[OPTION_MAP[key]] = key;
-    }
-}
-
-const option_to_int = (options) => {
-    /*
-        Converts our basic options object into an integer
-    */
-    let string = '00000000'.split('');
-    for (const key in options) {
-        if (options.hasOwnProperty(key) && OPTION_MAP.hasOwnProperty(key)) {
-            if (options[key]) {
-                string[OPTION_MAP[key]] = '1';
-            }
-        }
-    }
-    string = string.join('');
-    return parseInt('0'+string, 2);
-}
-const int_to_option = (int) => {
-    /*
-        Converts an integer into our basic options object
-    */
-    if (int === 1) return {disconnect: true};
-    const string = Number(int).toString(2);
-    const options = {};
-    
-    for (let index = 0; index < string.length; index++) {
-        if (string[index] === '1') {
-            options[OPTION_MAP_ARRAY[index]] = true;
-        }
-    }
-
-    return options;
-}
-
-const constrainToOne = (number) => {
-    return Math.min(1, Math.max(0, number));
-}
+const Encoder = new EncoderClass(null);
 
 window.addEventListener('DOMContentLoaded', () => {
     let socket = null;
@@ -77,6 +24,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const initSocket = () => {
         //Initiates the socket
         socket = new WebSocket(SERVER_URL);
+        Encoder.socket = socket;
 
         //Sets the binary data type of the socket to the type of our choice
         socket.binaryType = 'arraybuffer';
@@ -134,27 +82,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
     }
 
-    const send = (x, y, options) => {
-        /*
-            Structure of a payload
-
-            First 2 bytes: X position
-            Next  2 bytes: Y position
-            Next  1 byte: Configuration object as int
-
-            Compressed into binary to lower latency over the network
-        */ 
-
-        const buffer = new ArrayBuffer(5);
-        const dv = new DataView(buffer, 0);
-        last_position.x = x;
-        last_position.y = y;
-        dv.setUint16(0, Math.floor(constrainToOne(x)*65535));
-        dv.setUint16(2, Math.floor(constrainToOne(y)*65535));
-        dv.setUint8(4, option_to_int(options));
-        socket.send(buffer);
-    }
-
 
 
     //////////////////////////////////////////////
@@ -163,17 +90,17 @@ window.addEventListener('DOMContentLoaded', () => {
     //////////////////////////////////////////////
 
     window.addEventListener('mousemove', (e) => {
-        send(
+        Encoder.send(
             e.clientX/window.innerWidth,
             e.clientY/window.innerHeight,
-            CURRENT_STATE
+            Variables.current_state
         );
     })
     window.addEventListener('mousedown', (e) => {
-        CURRENT_STATE.mousedown = true;
+        Variables.current_state.mousedown = true;
     })
     window.addEventListener('mouseup', (e) => {
-        CURRENT_STATE.mousedown = false;
+        Variables.current_state.mousedown = false;
     })
 
 
@@ -182,33 +109,44 @@ window.addEventListener('DOMContentLoaded', () => {
     */
     window.addEventListener('touchmove', (e) => {
         e.preventDefault();
-        send(
+        Encoder.send(
             e.touches[0].clientX/window.innerWidth,
             e.touches[0].clientY/window.innerHeight,
-            CURRENT_STATE
+            Variables.current_state
         );
         return false;
     })
     window.addEventListener('touchstart', (e) => {
         e.preventDefault();
-        CURRENT_STATE.mousedown = true;
-        send(
+        Variables.current_state.mousedown = true;
+        Encoder.send(
             e.touches[0].clientX/window.innerWidth,
             e.touches[0].clientY/window.innerHeight,
-            CURRENT_STATE
+            Variables.current_state
         );
         return false;
     })
     window.addEventListener('touchend', (e) => {
         e.preventDefault();
-        CURRENT_STATE.mousedown = false;
-        send(
-            last_position.x,
-            last_position.y,
-            CURRENT_STATE
+        Variables.current_state.mousedown = false;
+        Encoder.send(
+            Variables.last_position.x,
+            Variables.last_position.y,
+            Variables.current_state
         );
         return false;
     })
+
+
+    const clearButton = document.createElement('button');
+    clearButton.textContent = "Clear";
+    document.body.appendChild(clearButton);
+    clearButton.addEventListener('click', (e)=>{
+        console.log('hi');
+        Encoder.send(Variables.last_position.x, Variables.last_position.y, {clear: true});
+        console.log('hi');
+    });
+
     //////////////////////////////////////////////
     ////////////////// End      //////////////////
     ////////////////// listeners /////////////////

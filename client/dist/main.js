@@ -45,84 +45,32 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 	
-	const getQueryVariable = (variable) => {
-	    var query = window.location.search.substring(1);
-	    var vars = query.split("&");
-	    for (var i = 0; i < vars.length; i++) {
-	        var pair = vars[i].split("=");
-	        if (pair[0] == variable) {
-	            return pair[1];
-	        }
-	    }
-	    return false;
-	}
+	const getQueryVariable = __webpack_require__(1);
 
 	// Allow a query variable to be used for testing purposes.
 	const SERVER_URL = (getQueryVariable('server')) ? getQueryVariable('server') : 'wss://ws.opl.io';
 
-	const OPTION_MAP = {
-	    mousedown: 0,
-	    disconnect: 7,
-	}
-	const OPTION_MAP_ARRAY = [];
-	const CURRENT_STATE = {
-	    mousedown: false,
-	}
+	const Variables = __webpack_require__(2);
+	Variables.last_position = {x: 0, y: 0};
+	Variables.current_state = {};
 
-	const last_position = {x: 0, y: 0};
+	const option_to_int = __webpack_require__(3);
+	const int_to_option = __webpack_require__(4);
+	const EncoderClass = __webpack_require__(5);
 
-	for (const key in OPTION_MAP) {
-	    if (OPTION_MAP.hasOwnProperty(key)) {
-	        OPTION_MAP_ARRAY[OPTION_MAP[key]] = key;
-	    }
-	}
-
-	const option_to_int = (options) => {
-	    /*
-	        Converts our basic options object into an integer
-	    */
-	    let string = '00000000'.split('');
-	    for (const key in options) {
-	        if (options.hasOwnProperty(key) && OPTION_MAP.hasOwnProperty(key)) {
-	            if (options[key]) {
-	                string[OPTION_MAP[key]] = '1';
-	            }
-	        }
-	    }
-	    string = string.join('');
-	    return parseInt('0'+string, 2);
-	}
-	const int_to_option = (int) => {
-	    /*
-	        Converts an integer into our basic options object
-	    */
-	    if (int === 1) return {disconnect: true};
-	    const string = Number(int).toString(2);
-	    const options = {};
-	    
-	    for (let index = 0; index < string.length; index++) {
-	        if (string[index] === '1') {
-	            options[OPTION_MAP_ARRAY[index]] = true;
-	        }
-	    }
-
-	    return options;
-	}
-
-	const constrainToOne = (number) => {
-	    return Math.min(1, Math.max(0, number));
-	}
+	const Encoder = new EncoderClass(null);
 
 	window.addEventListener('DOMContentLoaded', () => {
 	    let socket = null;
 	    let myId = null;
 
-	    const ClientHandler = __webpack_require__(1);
+	    const ClientHandler = __webpack_require__(7);
 	    const handler = new ClientHandler(document.body);
 	    
 	    const initSocket = () => {
 	        //Initiates the socket
 	        socket = new WebSocket(SERVER_URL);
+	        Encoder.socket = socket;
 
 	        //Sets the binary data type of the socket to the type of our choice
 	        socket.binaryType = 'arraybuffer';
@@ -180,27 +128,6 @@
 
 	    }
 
-	    const send = (x, y, options) => {
-	        /*
-	            Structure of a payload
-
-	            First 2 bytes: X position
-	            Next  2 bytes: Y position
-	            Next  1 byte: Configuration object as int
-
-	            Compressed into binary to lower latency over the network
-	        */ 
-
-	        const buffer = new ArrayBuffer(5);
-	        const dv = new DataView(buffer, 0);
-	        last_position.x = x;
-	        last_position.y = y;
-	        dv.setUint16(0, Math.floor(constrainToOne(x)*65535));
-	        dv.setUint16(2, Math.floor(constrainToOne(y)*65535));
-	        dv.setUint8(4, option_to_int(options));
-	        socket.send(buffer);
-	    }
-
 
 
 	    //////////////////////////////////////////////
@@ -209,17 +136,17 @@
 	    //////////////////////////////////////////////
 
 	    window.addEventListener('mousemove', (e) => {
-	        send(
+	        Encoder.send(
 	            e.clientX/window.innerWidth,
 	            e.clientY/window.innerHeight,
-	            CURRENT_STATE
+	            Variables.current_state
 	        );
 	    })
 	    window.addEventListener('mousedown', (e) => {
-	        CURRENT_STATE.mousedown = true;
+	        Variables.current_state.mousedown = true;
 	    })
 	    window.addEventListener('mouseup', (e) => {
-	        CURRENT_STATE.mousedown = false;
+	        Variables.current_state.mousedown = false;
 	    })
 
 
@@ -228,33 +155,44 @@
 	    */
 	    window.addEventListener('touchmove', (e) => {
 	        e.preventDefault();
-	        send(
+	        Encoder.send(
 	            e.touches[0].clientX/window.innerWidth,
 	            e.touches[0].clientY/window.innerHeight,
-	            CURRENT_STATE
+	            Variables.current_state
 	        );
 	        return false;
 	    })
 	    window.addEventListener('touchstart', (e) => {
 	        e.preventDefault();
-	        CURRENT_STATE.mousedown = true;
-	        send(
+	        Variables.current_state.mousedown = true;
+	        Encoder.send(
 	            e.touches[0].clientX/window.innerWidth,
 	            e.touches[0].clientY/window.innerHeight,
-	            CURRENT_STATE
+	            Variables.current_state
 	        );
 	        return false;
 	    })
 	    window.addEventListener('touchend', (e) => {
 	        e.preventDefault();
-	        CURRENT_STATE.mousedown = false;
-	        send(
-	            last_position.x,
-	            last_position.y,
-	            CURRENT_STATE
+	        Variables.current_state.mousedown = false;
+	        Encoder.send(
+	            Variables.last_position.x,
+	            Variables.last_position.y,
+	            Variables.current_state
 	        );
 	        return false;
 	    })
+
+
+	    const clearButton = document.createElement('button');
+	    clearButton.textContent = "Clear";
+	    document.body.appendChild(clearButton);
+	    clearButton.addEventListener('click', (e)=>{
+	        console.log('hi');
+	        Encoder.send(Variables.last_position.x, Variables.last_position.y, {clear: true});
+	        console.log('hi');
+	    });
+
 	    //////////////////////////////////////////////
 	    ////////////////// End      //////////////////
 	    ////////////////// listeners /////////////////
@@ -275,9 +213,152 @@
 
 /***/ }),
 /* 1 */
+/***/ (function(module, exports) {
+
+	module.exports = (variable) => {
+	    var query = window.location.search.substring(1);
+	    var vars = query.split("&");
+	    for (var i = 0; i < vars.length; i++) {
+	        var pair = vars[i].split("=");
+	        if (pair[0] == variable) {
+	            return pair[1];
+	        }
+	    }
+	    return false;
+	}
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports) {
+
+	const Variables = {
+
+	    // the option map is an object which maps each function to a bit in our configuration byte.
+	    // values can only be true or false.
+	    OPTION_MAP: {
+	        mousedown: 0,
+	        clear: 1,
+	        disconnect: 7,
+	    },
+
+	    // the option map array is a companion variable to the option map, which is a reverse mapping of bit indexes to their representations. filled out automatically.
+	    OPTION_MAP_ARRAY: [],
+	}
+
+
+	for (const key in Variables.OPTION_MAP) {
+	    if (Variables.OPTION_MAP.hasOwnProperty(key)) {
+	        Variables.OPTION_MAP_ARRAY[Variables.OPTION_MAP[key]] = key;
+	    }
+	}
+
+
+	module.exports = Variables;
+
+/***/ }),
+/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	const Canvas = __webpack_require__(2);
+	const Variables = __webpack_require__(2);
+
+	module.exports = (options) => {
+	    /*
+	        Converts our basic options object into an integer
+	    */
+	    let string = '00000000'.split('');
+	    for (const key in options) {
+	        if (options.hasOwnProperty(key) && Variables.OPTION_MAP.hasOwnProperty(key)) {
+	            if (options[key]) {
+	                string[Variables.OPTION_MAP[key]] = '1';
+	            }
+	        }
+	    }
+	    string = string.join('');
+	    return parseInt('0'+string, 2);
+	}
+
+/***/ }),
+/* 4 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	const Variables = __webpack_require__(2);
+
+	module.exports = (int) => {
+	    /*
+	        Converts an integer into our basic options object
+	    */
+	    if (int === 1) return {disconnect: true};
+	    let string = Number(int).toString(2);
+	    while (string.length < 8) string = '0'+string;
+	    const options = {};
+	    
+	    for (let index = 0; index < string.length; index++) {
+	        if (string[index] === '1') {
+	            options[Variables.OPTION_MAP_ARRAY[index]] = true;
+	        }
+	    }
+
+	    return options;
+	}
+
+/***/ }),
+/* 5 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	const Variables = __webpack_require__(2);
+	const Constrain = __webpack_require__(6);
+	const options_to_int = __webpack_require__(3);
+
+	class Encoder {
+	    constructor (websocket) {
+	        this.socket = websocket;
+	    }
+	    
+	    send (x, y, options) {
+	        /*
+	            Structure of a payload
+
+	            First 2 bytes: X position
+	            Next  2 bytes: Y position
+	            Next  1 byte: Configuration object as int
+
+	            Compressed into binary to lower latency over the network
+	        */ 
+	        const buffer = new ArrayBuffer(5);
+	        const dv = new DataView(buffer, 0);
+	        Variables.last_position.x = x;
+	        Variables.last_position.y = y;
+	        dv.setUint16(0, Math.floor(Constrain.toOne(x)*65535));
+	        dv.setUint16(2, Math.floor(Constrain.toOne(y)*65535));
+	        dv.setUint8(4, options_to_int(options));
+	        this.socket.send(buffer);
+	    }
+	}
+
+	module.exports = Encoder;
+
+/***/ }),
+/* 6 */
+/***/ (function(module, exports) {
+
+	class Constrain {
+	    constructor () {
+
+	    }
+
+	    static toOne (number) {
+	        return Math.min(1, Math.max(0, number));
+	    }
+
+	}
+
+	module.exports = Constrain;
+
+/***/ }),
+/* 7 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	const Canvas = __webpack_require__(8);
 	class Handler {
 	    constructor (container) {
 	        this.canvas = new Canvas();
@@ -355,6 +436,8 @@
 	                index = client.events.length;
 	                this.ctx.stroke();
 	                return;
+	            } else if (e.c.clear) {
+	                this.clear();
 	            } else {
 
 	                /* 
@@ -421,7 +504,7 @@
 	module.exports = Handler;
 
 /***/ }),
-/* 2 */
+/* 8 */
 /***/ (function(module, exports) {
 
 	class Canvas {

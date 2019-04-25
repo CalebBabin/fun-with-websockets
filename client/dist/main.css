@@ -1,4 +1,4 @@
-html, body, canvas, .client {
+.client, canvas {
   cursor: default;
   pointer-events: none; }
 
@@ -16,4 +16,15 @@ html, body, canvas {
   height: 1vmin;
   margin: -0.5vmin;
   border-radius: 100%;
-  background: white; }
+  background: white;
+  z-index: 11; }
+
+canvas {
+  z-index: 10; }
+
+button {
+  position: absolute;
+  z-index: 100;
+  cursor: pointer;
+  top: 5px;
+  left: 5px; }

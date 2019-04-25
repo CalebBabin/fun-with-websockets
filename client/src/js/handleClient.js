@@ -76,6 +76,8 @@ class Handler {
                 index = client.events.length;
                 this.ctx.stroke();
                 return;
+            } else if (e.c.clear) {
+                this.clear();
             } else {
 
                 /* 

@@ -13,7 +13,6 @@ html, body, canvas{
     background: #333;
     overflow: hidden;
 
-    @extend %defaultCursor;
 }
 
 .client {
@@ -25,5 +24,20 @@ html, body, canvas{
     border-radius: 100%;
     background: white;
 
+    z-index: 11;
+
     @extend %defaultCursor;
+}
+
+canvas {
+    z-index: 10;
+    @extend %defaultCursor;
+}
+
+button {
+    position: absolute;
+    z-index: 100;
+    cursor: pointer;
+    top: 5px;
+    left: 5px;
 }
