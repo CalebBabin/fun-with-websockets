@@ -1,6 +1,6 @@
-const Variables = require('./variables');
-const Constrain = require('./utils/constrain');
-const options_to_int = require('./utils/options_to_int');
+const Variables = require('../variables');
+const Constrain = require('./constrain');
+const options_to_int = require('./options_to_int');
 
 class Encoder {
     constructor (websocket) {

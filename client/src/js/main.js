@@ -4,13 +4,13 @@ const getQueryVariable = require('./utils/query_variable');
 // Allow a query variable to be used for testing purposes.
 const SERVER_URL = (getQueryVariable('server')) ? getQueryVariable('server') : 'wss://ws.opl.io';
 
-const Variables = require('./variables.js');
+const Variables = require('./variables');
 Variables.last_position = {x: 0, y: 0};
 Variables.current_state = {};
 
-const option_to_int = require('./utils/options_to_int.js');
-const int_to_option = require('./utils/int_to_option.js');
-const EncoderClass = require('./encoder');
+const option_to_int = require('./utils/options_to_int');
+const int_to_option = require('./utils/int_to_option');
+const EncoderClass = require('./utils/encoder');
 
 const Encoder = new EncoderClass(null);
 
@@ -18,7 +18,7 @@ window.addEventListener('DOMContentLoaded', () => {
     let socket = null;
     let myId = null;
 
-    const ClientHandler = require('./handleClient.js');
+    const ClientHandler = require('./utils/handleClient');
     const handler = new ClientHandler(document.body);
     
     const initSocket = () => {
