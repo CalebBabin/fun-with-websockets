@@ -27,7 +27,7 @@ class Favicon {
 
             document.head.appendChild(element);
         })
-        baseImage.src = 'img/paintbrush.png';
+        baseImage.src = 'img/paintbrush.png?v=2';
     }
 }
 
