@@ -11,6 +11,7 @@ Variables.current_state = {};
 const option_to_int = require('./utils/options_to_int');
 const int_to_option = require('./utils/int_to_option');
 const EncoderClass = require('./utils/encoder');
+const Favicon = require('./utils/favicon');
 
 const Encoder = new EncoderClass(null);
 
@@ -39,6 +40,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 const data = JSON.parse(message.data);
                 if (data.id) {
                     myId = data.id;
+                    Favicon.generate(myId);
                     window.TICK_SPACING = data.tickSpacing;
                 }
             } else {

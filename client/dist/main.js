@@ -57,6 +57,7 @@
 	const option_to_int = __webpack_require__(3);
 	const int_to_option = __webpack_require__(4);
 	const EncoderClass = __webpack_require__(5);
+	const Favicon = __webpack_require__(7);
 
 	const Encoder = new EncoderClass(null);
 
@@ -64,7 +65,7 @@
 	    let socket = null;
 	    let myId = null;
 
-	    const ClientHandler = __webpack_require__(7);
+	    const ClientHandler = __webpack_require__(9);
 	    const handler = new ClientHandler(document.body);
 	    
 	    const initSocket = () => {
@@ -85,6 +86,7 @@
 	                const data = JSON.parse(message.data);
 	                if (data.id) {
 	                    myId = data.id;
+	                    Favicon.generate(myId);
 	                    window.TICK_SPACING = data.tickSpacing;
 	                }
 	            } else {
@@ -358,7 +360,60 @@
 /* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	const Canvas = __webpack_require__(8);
+	const hueHasher = __webpack_require__(8);
+
+	class Favicon {
+	    constructor () {
+
+	    }
+
+	    static generate (id) {
+	        const color = hueHasher(id, false);
+	        
+	        const baseImage = new Image(256, 256);
+
+	        const canvas = document.createElement('canvas');
+	        const context = canvas.getContext('2d');
+	        canvas.width = baseImage.width;
+	        canvas.height = baseImage.height;
+
+	        context.filter = `hue-rotate(${color}deg)`;
+
+	        baseImage.addEventListener('load', ()=>{
+	            context.drawImage(baseImage, 0, 0);
+
+	            const element = document.createElement('link');
+	            element.setAttribute('rel', 'icon');
+	            element.setAttribute('type', 'image/png');
+	            element.setAttribute('href', canvas.toDataURL());
+
+	            document.head.appendChild(element);
+	        })
+	        baseImage.src = 'img/paintbrush.png';
+	    }
+	}
+
+	module.exports = Favicon;
+
+/***/ }),
+/* 8 */
+/***/ (function(module, exports) {
+
+	const hueHasher = (id, wrap = true) => {
+	    while(id > 360) id -= 360;
+	    if (wrap)
+	        return `hsl(${id}, 100%, 50%)`;
+	    else 
+	        return id;
+	}
+
+	module.exports = hueHasher;
+
+/***/ }),
+/* 9 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	const Canvas = __webpack_require__(10);
 	class Handler {
 	    constructor (container) {
 	        this.canvas = new Canvas();
@@ -504,7 +559,7 @@
 	module.exports = Handler;
 
 /***/ }),
-/* 8 */
+/* 10 */
 /***/ (function(module, exports) {
 
 	class Canvas {
