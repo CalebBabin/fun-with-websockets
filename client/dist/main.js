@@ -424,6 +424,8 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 	const Canvas = __webpack_require__(10);
+
+	const precalc = 180 / Math.PI;
 	class Handler {
 	    constructor (container) {
 	        this.canvas = new Canvas();
@@ -431,6 +433,10 @@
 	        this.container = container;
 
 	        this.clients = {};
+	    }
+
+	    getAngle (x1, y1, x2, y2) {
+	        return Math.atan2(y2 - y1, x2 - x1) * precalc;
 	    }
 
 	    /*
@@ -452,6 +458,13 @@
 	        return `hsl(${hash}, 100%, 50%)`;
 	    }
 
+	    pushHistory (id, pos) {
+	        for (let index = 0; index < this.clients[id].history.length-1; index++) {
+	            this.clients[id].history[index] = this.clients[id].history[index+1];
+	        }
+	        this.clients[id].history[this.clients[id].history.length-1] = pos;
+	    }
+
 	    /*
 	        Initiates the object for a new client and adds a pointer element to the DOM
 	    */
@@ -461,10 +474,10 @@
 	                x: 0.5,
 	                y: 0.5,
 	            },
+	            history: new Array(10),
 	            color: this.colorHash(id),
 	            element: document.createElement('div'),
 	        };
-
 	        this.clients[id].element.classList.add('client');
 	        this.container.appendChild(this.clients[id].element);
 	    }
@@ -512,6 +525,20 @@
 	                setTimeout(()=>{
 	                    this.clients[client.id].element.style.left = e.x*100+'%';
 	                    this.clients[client.id].element.style.top = e.y*100+'%';
+	                    
+	                    if (this.clients[client.id].history[0] !== undefined) {
+	                        this.clients[client.id].element.style.transform = 'rotate('+
+	                            (this.getAngle(
+	                                this.clients[client.id].history[0].x,
+	                                this.clients[client.id].history[0].y,
+	                                e.x,
+	                                e.y
+	                            )+135)
+	                        +'deg)';
+	                    }
+	                    this.pushHistory(
+	                        client.id,
+	                        e);
 	                }, interval*index);
 	    
 	                /*

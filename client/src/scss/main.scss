@@ -18,11 +18,17 @@ html, body, canvas{
 .client {
     position: absolute;
 
-    width: 1vmin;
-    height: 1vmin;
-    margin: -0.5vmin;
-    border-radius: 100%;
-    background: white;
+    width: 1.5vmin;
+    height: 1.5vmin;
+    //margin: -0.5vmin;
+    //border-radius: 100%;
+    //background: white;
+
+    border: 2px solid white;
+    border-right: none;
+    border-bottom: none;
+    border-radius: 0 100% 100% 100%;
+    transform-origin: 0 0;
 
     z-index: 11;
 
