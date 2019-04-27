@@ -63,11 +63,13 @@ const heartbeatInterval = setInterval(() => {
 
 
 //Initialize new websocket connections
-wss.on('connection', function connection(ws) {
+wss.on('connection', function connection(ws, req) {
+    const ip = (req.headers['X-Real-IP']) ? req.headers['X-Real-IP'] : req.connection.remoteAddress;
+    ws.ipAddress = ip;
 
     //assign socket a unique ID and send it to the client
     ws.clientId = getUniqueId(wss);
-    console.log(`${ws.clientId} connected`);
+    console.log(`${ws.clientId} connected from ${ip}`);
     ws.send(JSON.stringify({
         id: ws.clientId,
         tickSpacing: config.tickrate,

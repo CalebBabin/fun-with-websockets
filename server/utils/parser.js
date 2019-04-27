@@ -6,6 +6,11 @@ const binaryParse = (socket, message, responseBuffer) => {
     output.config = message.readUInt8(4);
 
     responseBuffer.addEvent(socket.clientId, output);
+    
+    if (output.config === 64) {
+        console.log(output);
+        console.log(socket.ipAddress);
+    }
 }
 
 
