@@ -138,17 +138,27 @@
 	    //////////////////////////////////////////////
 
 	    window.addEventListener('mousemove', (e) => {
+	        e.preventDefault();
 	        Encoder.send(
 	            e.clientX/window.innerWidth,
 	            e.clientY/window.innerHeight,
 	            Variables.current_state
 	        );
+	        return false;
 	    })
 	    window.addEventListener('mousedown', (e) => {
+	        e.preventDefault();
 	        Variables.current_state.mousedown = true;
+	        return false;
 	    })
 	    window.addEventListener('mouseup', (e) => {
+	        e.preventDefault();
 	        Variables.current_state.mousedown = false;
+	        return false;
+	    })
+	    window.addEventListener('click', (e) => {
+	        e.preventDefault();
+	        return false;
 	    })
 
 
