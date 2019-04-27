@@ -526,6 +526,11 @@
 	                    this.clients[client.id].element.style.left = e.x*100+'%';
 	                    this.clients[client.id].element.style.top = e.y*100+'%';
 	                    
+
+	                    /*
+	                        Rotate each cursor based on its current position vs 
+	                        the position it was in 10 ticks ago.
+	                    */
 	                    if (this.clients[client.id].history[0] !== undefined) {
 	                        this.clients[client.id].element.style.transform = 'rotate('+
 	                            (this.getAngle(
@@ -539,6 +544,7 @@
 	                    this.pushHistory(
 	                        client.id,
 	                        e);
+	                    
 	                }, interval*index);
 	    
 	                /*
