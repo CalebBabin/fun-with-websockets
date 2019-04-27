@@ -1,6 +1,6 @@
 module.exports = {
     //batch send broadcasts every x milliseconds
-    tickrate: 1000/2,
+    tickrate: 1000/5,
     
     //drop dead connections after x milliseconds
     heartrate: 10000,
