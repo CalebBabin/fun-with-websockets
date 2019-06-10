@@ -17,8 +17,8 @@
   },
   "homepage": "https://github.com/CalebBabin/fun-with-websockets#readme",
   "dependencies": {
-    "express": "^4.16.4",
-    "gulp": "^4.0.0",
+    "express": "^4.17.1",
+    "gulp": "^4.0.2",
     "gulp-sass": "^4.0.2",
     "gulp-webpack": "^1.5.0",
     "npm": "^6.9.0",
